@@ -2,11 +2,13 @@ import java.util.Random;
 
 public class TCPSocketImpl extends TCPSocket {
     
-    public EnhancedDatagramSocket socket;
-
+    private EnhancedDatagramSocket socket;
+    private int slowStart; 
+    private long ssthreshold;
     public TCPSocketImpl(String ip, int port) throws Exception {
         super(ip, port);
         socket= new EnhancedDatagramSocket(port);
+        slowStart = 1;
         
     }
 
@@ -15,7 +17,6 @@ public class TCPSocketImpl extends TCPSocket {
         //check kardane inke next sequence number kamtar as window size basheh age kamtar nabashe sabr kone
         //age timeout gozasht bere oni ke timeout esh gozashte ro dobare befreste va timer esh ro start bezane
         //age seq.no moshkeli nadasht  send kone , next seq.no ro handel kone 
-        readFile()
 
 
     }
@@ -39,6 +40,9 @@ public class TCPSocketImpl extends TCPSocket {
     @Override
     public long getSSThreshold() {
         //ehtemalan on chizi ke to recv goftim ke ino handel kone bayad inja anjam beshe va meghdaresh ro return kone
+        if (slowStart==1){
+            ssthreshold = ssthreshold/2;
+        }
         throw new RuntimeException("Not implemented!");
     }
 
@@ -47,20 +51,20 @@ public class TCPSocketImpl extends TCPSocket {
         //ehtemalan on chizi ke to recv goftim ke ino handel kone bayad inja anjam beshe va meghdaresh ro return kone
         throw new RuntimeException("Not implemented!");
     }
-    public static void readFile(String filename){
-        try{
-            File file = new File(filename);
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String st; 
-            while ((st=br.readLine()) != null){
+    // public static void readFile(String filename){
+    //     try{
+    //         File file = new File(filename);
+    //         BufferedReader br = new BufferedReader(new FileReader(file));
+    //         String st; 
+    //         while ((st=br.readLine()) != null){
                 
-            }
-        }
-        catch(Exception e){
-            System.out.println("An Error in reading the file!\n");
-            System.out.println(e);
-        } 
-    }
+    //         }
+    //     }
+    //     catch(Exception e){
+    //         System.out.println("An Error in reading the file!\n");
+    //         System.out.println(e);
+    //     } 
+    // }
         
 
 }
