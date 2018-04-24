@@ -2,9 +2,10 @@ import java.io.*;
 import java.net.*;
 
 public class TCPServerSocketImpl extends TCPServerSocket {
-    public int someOneIsConnected; 
+    private int someOneIsConnected; 
     public EnhancedDatagramSocket socket;
-    int seq_No;
+    private int seq_No; 
+    private int ack_No;
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
@@ -55,11 +56,14 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             {
                 this.seq_No = Integer.parseInt(splited[1])+1;
                 this.ack_No = Integer.parseInt(splited[2])+1;
-
             }
+            DatagramPacket receivePacket2 = new DatagramPacket(receiveData, receiveData.length);
+            this.socket.receive(receivePacket2);
             someOneIsConnected = 0;
         }
-        EnhancedDatagramSocket tcp_server_socket = new EnhancedDatagramSocket(port);
+        // find a way to change the IP
+        TCPSocketImpl tcp_server_socket = new TCPSocketImpl("127.0.0.1", this.port);
+        return tcp_server_socket;
     }
 
     @Override
