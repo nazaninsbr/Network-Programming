@@ -4,6 +4,8 @@ import java.net.*;
 public class TCPServerSocketImpl extends TCPServerSocket {
     private int someOneIsConnected; 
     public EnhancedDatagramSocket socket;
+    private int seq_No; 
+    private int ack_No;
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
@@ -28,16 +30,7 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             System.out.println("RECEIVED: " + sentence);
             InetAddress IPAddress = receivePacket1.getAddress();
             port = receivePacket1.getPort();
-            if(sentence="SYNC")
-
-            
-           
-
-            //**************//
-       
-            DatagramPacket receivePacket2 = new DatagramPacket(receiveData, receiveData.length);
-            this.socket.receive(receivePacket2);
-            {
+            if(sentence=="SYNC"){
                 this.seq_No +=1;
                 String ackNoString = Integer.toString(seq_No);
                 sentence= ackNoString + sentence;
@@ -45,9 +38,13 @@ public class TCPServerSocketImpl extends TCPServerSocket {
                 DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
                 this.socket.send(sendPacket);
             }
+            DatagramPacket receivePacket2 = new DatagramPacket(receiveData, receiveData.length);
+            this.socket.receive(receivePacket2);
             someOneIsConnected = 0;
         }
-        EnhancedDatagramSocket tcp_server_socket = new EnhancedDatagramSocket(port);
+        // find a way to change the IP
+        TCPSocketImpl tcp_server_socket = new TCPSocketImpl("127.0.0.1", this.port);
+        return tcp_server_socket;
     }
 
     @Override

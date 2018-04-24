@@ -1,35 +1,10 @@
 public abstract class TCPServerSocket {
-	public TCPServerSocket(int port) throws Exception {}
-
-<<<<<<< HEAD
-	public abstract TCPSocket accept() throws Exception{
-		//needs to have handshaking
-		int notConnected = 1;
-		int port;
-		while(notConnected==1){
-			//byte[] receiveData = new byte[1024];
-			byte[] sendData = new byte[1024];
-			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-			this.socket.receive(receivePacket);
-			String sentence = new String( receivePacket.getData());
-			System.out.println("RECEIVED:" + sentence);
-			InetAddress IPAddress = receivePacket.getAddress();
-			port = receivePacket.getPort();
-			sendData = sentence.getBytes();
-			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-			this.socket.send(sendPacket);
-			DatagramPacket receivePacket = new DatagramPacket(sentence, sentence.length);
-			this.socket.receive(receivePacket);
-			notConnected = 0;
-		}
-		ServerSocket tcp_socket = new ServerSocket(port);
+	protected int port;
+	public TCPServerSocket(int port) throws Exception {
+		this.port = port;
 	}
-=======
+
 	public abstract TCPSocket accept() throws Exception;
->>>>>>> fa203f04b40ecc21b3eeb74ce50151e777e0381f
 
-	public abstract void close() throws Exception
-	{
-		this.socket.close();
-	}
+	public abstract void close() throws Exception;
 }
