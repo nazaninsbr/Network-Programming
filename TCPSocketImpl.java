@@ -12,6 +12,7 @@ public class TCPSocketImpl extends TCPSocket {
 
     @Override
     public void send(String pathToFile) throws Exception {
+        
 
 
         throw new RuntimeException("Not implemented!");
@@ -24,8 +25,8 @@ public class TCPSocketImpl extends TCPSocket {
 
     @Override
     public void close() throws Exception {
-        this.socket.close()
-        throw new RuntimeException("Not implemented!");
+        this.socket.close();
+        //throw new RuntimeException("Not implemented!");
     }
 
     @Override

@@ -1,8 +1,7 @@
 public abstract class TCPServerSocket {
-	public TCPServerSocket(int port) throws Exception {
-		 EnhancedDatagramSocket socket= new EnhancedDatagramSocket(port);
-	}
+	public TCPServerSocket(int port) throws Exception {}
 
+<<<<<<< HEAD
 	public abstract TCPSocket accept() throws Exception{
 		//needs to have handshaking
 		int notConnected = 1;
@@ -25,6 +24,9 @@ public abstract class TCPServerSocket {
 		}
 		ServerSocket tcp_socket = new ServerSocket(port);
 	}
+=======
+	public abstract TCPSocket accept() throws Exception;
+>>>>>>> fa203f04b40ecc21b3eeb74ce50151e777e0381f
 
 	public abstract void close() throws Exception
 	{
