@@ -8,12 +8,12 @@ public abstract class TCPServerSocket {
 		int notConnected = 1;
 		int port;
 		while(notConnected==1){
-			byte[] receiveData = new byte[1024];
+			//byte[] receiveData = new byte[1024];
 			byte[] sendData = new byte[1024];
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			this.socket.receive(receivePacket);
 			String sentence = new String( receivePacket.getData());
-			System.out.println("RECEIVED: " + sentence);
+			System.out.println("RECEIVED:" + sentence);
 			InetAddress IPAddress = receivePacket.getAddress();
 			port = receivePacket.getPort();
 			sendData = sentence.getBytes();
@@ -26,5 +26,8 @@ public abstract class TCPServerSocket {
 		ServerSocket tcp_socket = new ServerSocket(port);
 	}
 
-	public abstract void close() throws Exception;
+	public abstract void close() throws Exception
+	{
+		this.socket.close();
+	}
 }
