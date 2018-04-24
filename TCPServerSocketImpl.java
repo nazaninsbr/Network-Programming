@@ -31,10 +31,10 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             InetAddress IPAddress = receivePacket1.getAddress();
             port = receivePacket1.getPort();
             String[] splited = sentence.split("\\s+");
-            new_seq_No = Integer.parseInt(splited[1]);
+            int client_seq_No = Integer.parseInt(splited[1]);
             if(splited[0]=="SYN")
             {
-                this.ack_No=new_seq_No+1;
+                this.ack_No=client_seq_No+1;
                 String ackNoString = Integer.toString(this.ack_No);
                 String seqNoString = Integer.toString(this.seq_No);
                 String sentence_for_send = "SYN-ACK" + " "+seqNoString+" "+ackNoString;
@@ -47,18 +47,17 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             //**************/
             DatagramPacket receivePacket2 = new DatagramPacket(receiveData, receiveData.length);
             this.socket.receive(receivePacket2);
-            String sentence = new String(receivePacket2.getData());
+            sentence = new String(receivePacket2.getData());
             System.out.println("RECEIVED: " + sentence);
-            String[] splited = sentence.split("\\s+");
+            splited = sentence.split("\\s+");
 
-            if(split[0]=="ACK")
+            if(splited[0]=="ACK")
 
             {
                 this.seq_No = Integer.parseInt(splited[1])+1;
                 this.ack_No = Integer.parseInt(splited[2])+1;
             }
-            DatagramPacket receivePacket2 = new DatagramPacket(receiveData, receiveData.length);
-            this.socket.receive(receivePacket2);
+        
             someOneIsConnected = 0;
         }
         // find a way to change the IP
