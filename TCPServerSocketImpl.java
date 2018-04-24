@@ -2,14 +2,12 @@ import java.io.*;
 import java.net.*;
 
 public class TCPServerSocketImpl extends TCPServerSocket {
-    public int someOneIsConnected; 
+    private int someOneIsConnected; 
     public EnhancedDatagramSocket socket;
-    int seq_No;
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
         this.socket = new EnhancedDatagramSocket(port);
-        this.seq_No = 0;
     }
 
     @Override
