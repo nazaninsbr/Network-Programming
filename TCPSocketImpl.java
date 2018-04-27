@@ -5,10 +5,13 @@ public class TCPSocketImpl extends TCPSocket {
     private EnhancedDatagramSocket socket;
     private int slowStart; 
     private long ssthreshold;
+    private long cwnd; 
     public TCPSocketImpl(String ip, int port) throws Exception {
         super(ip, port);
         socket= new EnhancedDatagramSocket(port);
-        slowStart = 1;
+        slowStart = 0;
+        ssthreshold = 10;
+        cwnd = 1;
         
     }
 
@@ -42,8 +45,9 @@ public class TCPSocketImpl extends TCPSocket {
         //ehtemalan on chizi ke to recv goftim ke ino handel kone bayad inja anjam beshe va meghdaresh ro return kone
         if (slowStart==1){
             ssthreshold = ssthreshold/2;
+            cwnd = 1;
         }
-        throw new RuntimeException("Not implemented!");
+        //throw new RuntimeException("Not implemented!");
     }
 
     @Override
@@ -51,6 +55,8 @@ public class TCPSocketImpl extends TCPSocket {
         //ehtemalan on chizi ke to recv goftim ke ino handel kone bayad inja anjam beshe va meghdaresh ro return kone
         throw new RuntimeException("Not implemented!");
     }
+
+
     // public static void readFile(String filename){
     //     try{
     //         File file = new File(filename);
