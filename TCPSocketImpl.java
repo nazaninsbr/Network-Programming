@@ -9,15 +9,15 @@ public class TCPSocketImpl extends TCPSocket {
     private long ssthreshold;
     private int seq_No; 
     private int ack_No;
-   // private int port;
-   // private String ip;
+    private int port;
+    private String ip;
     public TCPSocketImpl(String ip, int port) throws Exception {
         super(ip, port);
         socket= new EnhancedDatagramSocket(port);
         this.seq_No = 0;
         this.ack_No = 0;
-        //this.ip=ip;
-       // this.port=port;
+        this.ip=ip;
+        this.port=port;
         slowStart = 1;
         
     }
@@ -33,12 +33,14 @@ public class TCPSocketImpl extends TCPSocket {
     @Override
     public void receive(String pathToFile) throws Exception {
 
+        InetAddress ip_adress = InetAddress.getByName(this.ip);
+
         byte[] sendData = new byte[1024];
         String seqNoString = Integer.toString(this.seq_No);
         String ackNoString = Integer.toString(this.ack_No);
         String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
         sendData =message_for_send.getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip, port);
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
         this.socket.send(sendPacket);
         String  state = "SYN-SENT";
        
@@ -52,7 +54,7 @@ public class TCPSocketImpl extends TCPSocket {
             String[] splited = sentence.split("\\s+");
             int packet_ack_num=Integer.parseInt(splited[2]);
             int packet_seq_num=Integer.parseInt(splited[1]);
-            InetAddress IPAddress = receivePacket.getAddress();
+            //InetAddress IPAddress = receivePacket.getAddress();
             port = receivePacket.getPort();
 
             if(state=="SYN-SENT"){
@@ -60,22 +62,23 @@ public class TCPSocketImpl extends TCPSocket {
 
                     this.seq_No=packet_ack_num;
                     this.ack_No=packet_seq_num+1;
-                    massage_for_send="ACK"+" "+seqNoString+" "+ackNoString;
+                    message_for_send="ACK"+" "+seqNoString+" "+ackNoString;
                     sendData =message_for_send.getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,IPAddress, port);
+                    sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
                     this.socket.send(sendPacket);
                     state="ESTABLISHED";
                     //send ACK packet to server
 
                 }
-                else if(state="ESTABLISHED"){ //receive  data
+                else if(state=="ESTABLISHED"){ //receive  data
 
                     if(packet_seq_num >  this.seq_No)
                     {
+                        int packet_ack;
                         packet_ack=packet_seq_num + 1;
-                        ack_message="ACK"+" "+seqNoString;
-                        sendData =ack_messages.getBytes();
-                        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,IPAddress, port);
+                        String ack_message="ACK"+" "+seqNoString;
+                        sendData =ack_message.getBytes();
+                        sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
                         this.socket.send(sendPacket);
                     }
 
@@ -102,7 +105,7 @@ public class TCPSocketImpl extends TCPSocket {
         //age duplicate ack nist va ack hast window size ra yek vahed ezafeh konim
         //age ack nabood file ra benevisim
 
-        throw new RuntimeException("Not implemented!");
+        //throw new RuntimeException("Not implemented!");
     }
 
     @Override
