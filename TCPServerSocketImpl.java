@@ -19,44 +19,41 @@ public class TCPServerSocketImpl extends TCPServerSocket {
         // throw new RuntimeException("Not implemented!");
         //needs to have handshaking
         int port;
+        String state="";
+        //String state = new String("");
         while(this.someOneIsConnected==0){
             System.out.println("Listening");
             byte[] receiveData = new byte[1024];
             byte[] sendData = new byte[1024];
-            DatagramPacket receivePacket1 = new DatagramPacket(receiveData, receiveData.length);
-            this.socket.receive(receivePacket1);
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+            this.socket.receive(receivePacket);
             //this.seq_No +=1;
-            String sentence = new String(receivePacket1.getData());
+            String sentence = new String(receivePacket.getData());
             System.out.println("RECEIVED: " + sentence);
-            InetAddress IPAddress = receivePacket1.getAddress();
-            port = receivePacket1.getPort();
+            InetAddress IPAddress = receivePacket.getAddress();
+            port = receivePacket.getPort();
             String[] splited = sentence.split("\\s+");
-            int client_seq_No = Integer.parseInt(splited[1]);
-            if(splited[0]=="SYN")
-            {
-                this.ack_No=client_seq_No+1;
-                String ackNoString = Integer.toString(this.ack_No);
-                String seqNoString = Integer.toString(this.seq_No);
-                String sentence_for_send = "SYN-ACK" + " "+seqNoString+" "+ackNoString;
-                sendData = sentence_for_send.getBytes();
-                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
-                this.socket.send(sendPacket);
+            int packet_seq_No = Integer.parseInt(splited[1]);
+            int packet_ack_No = Integer.parseInt(splited[2]);
+            if(state==""){
+                if(splited[0]=="SYN"){
+                    this.ack_No=packet_seq_No+1;
+                    String ackNoString = Integer.toString(this.ack_No);
+                    String seqNoString = Integer.toString(this.seq_No);
+                    String sentence_for_send = "SYN-ACK" + " "+seqNoString+" "+ackNoString;
+                    sendData = sentence_for_send.getBytes();
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                    this.socket.send(sendPacket);
+                    state="SYN-RECEVED";
+
 
             }
+        }else if(state=="SYN-RECEVED"){
+            if(splited[0]=="ACK" && packet_ack_No == (this.seq_No)+1){
+                state="ESTABLISHED";
 
-            //**************/
-            DatagramPacket receivePacket2 = new DatagramPacket(receiveData, receiveData.length);
-            this.socket.receive(receivePacket2);
-            sentence = new String(receivePacket2.getData());
-            System.out.println("RECEIVED: " + sentence);
-            splited = sentence.split("\\s+");
-
-            if(splited[0]=="ACK")
-
-            {
-                this.seq_No = Integer.parseInt(splited[1])+1;
-                this.ack_No = Integer.parseInt(splited[2])+1;
             }
+        }
         
             someOneIsConnected = 0;
         }
