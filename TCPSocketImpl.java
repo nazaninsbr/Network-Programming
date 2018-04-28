@@ -119,16 +119,20 @@ public class TCPSocketImpl extends TCPSocket {
 						sendData =ack_message.getBytes();
 						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 						this.socket.send(sendPacket);
+						break;
 					}
-
-
-
-
-
 				}
 			}
 
-			
+			while(true){
+				//
+				byte[] receiveData = new byte[1024];
+				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+				this.socket.receive(receivePacket);
+				String sentence = new String(receivePacket.getData());
+				//check ye seri shode ya na
+				
+			}
 			
 			
 		   // System.out.println("RECEIVED: " + sentence);
