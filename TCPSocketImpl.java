@@ -6,6 +6,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TCPSocketImpl extends TCPSocket {
 	
@@ -26,8 +28,52 @@ public class TCPSocketImpl extends TCPSocket {
 		this.ip=ip;
 		this.port=port;
 		this.next_seq_No = 0;
-		slowStart = 1;
+		slowStart = 0;
 		cwnd = 1;
+	}
+
+	public static Thread timeoutPacket(final int seqNo, final String ip, final ArrayList<String> fileContent, final int seconds, final EnhancedDatagramSocket socket) throws Exception{
+		byte[] sendData = new byte[1024];
+		sendData =fileContent.get(seqNo).getBytes();
+		InetAddress ip_adress = InetAddress.getByName(ip);
+		ExecutorService service = Executors.newSingleThreadExecutor();
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length);
+		return new Thread(new Runnable(){
+			@Override
+			public void run(){
+				try{
+					byte[] receiveData = new byte[1024];
+					DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+					Timer timer = new Timer();
+					timer.schedule(new TimerTask(){ @Override
+            				public void run(){
+            					try{
+            						System.out.println("Time's up!");
+									socket.send(sendPacket);
+									timer.cancel();
+            					}
+            					catch (IOException ioe){}
+			
+							}
+					}, seconds*1000);
+					while(true){
+						socket.receive(receivePacket);
+						String sentence = new String(receivePacket.getData());
+					    String message =sentence.split("\\s+")[0];
+					    String ack_number =sentence.split("\\s+")[1];
+					    String seq_number =sentence.split("\\s+")[2];
+					    int packet_ack_num =Integer.parseInt(ack_number);
+					    int packet_seq_num =Integer.parseInt(seq_number);
+					    if(packet_ack_num-1==seqNo){
+					    	timer.cancel();
+					    	return;
+					    }
+					}
+				}catch(IOException ioe){
+
+				}
+			}
+		});
 	}
 
 	@Override
@@ -40,32 +86,29 @@ public class TCPSocketImpl extends TCPSocket {
 		byte[] sendData = new byte[1024];
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length);
 		//Timer timer = new Timer();
-		ExecutorService service = Executors.newSingleThreadExecutor();
-		while(next_seq_No< fileContent.size()){
-			try {
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-					}
-				};
-				if(next_seq_No <= cwnd){
-					sendData =fileContent.get(next_seq_No).getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
-					socket.send(sendPacket);
-					next_seq_No +=1;
-				}
-				Future<?> f = service.submit(r);
-				f.get(2, TimeUnit.MINUTES);
+		
+		int dup_ack_packet_num = -1; 
+		int dup_ack_times = 0;
 
-			}
-			catch (TimeoutException e) {
-				sendData = fileContent.get(seq_No).getBytes();
+		while(next_seq_No< fileContent.size()){
+			if(next_seq_No <= cwnd){
+				sendData =fileContent.get(next_seq_No).getBytes();
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
-				this.socket.send(sendPacket);
+				socket.send(sendPacket);
+				next_seq_No +=1;
+				
+				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 4, socket);
+				t.start();
+				try{t.join();}catch(InterruptedException ie){}
 			}
-			catch(Exception ex){
-				System.out.println("An Error!!\n");
-				System.out.println(ex);
+			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
+				sendData = fileContent.get(dup_ack_packet_num).getBytes();
+				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+				socket.send(sendPacket);
+				dup_ack_packet_num = -1;
+				dup_ack_times = 0;
+				slowStart = 1;
+				ssthreshold = getSSThreshold();
 			}
 		}
 	}
@@ -124,15 +167,15 @@ public class TCPSocketImpl extends TCPSocket {
 				}
 			}
 
-			while(true){
-				//
-				byte[] receiveData = new byte[1024];
-				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				this.socket.receive(receivePacket);
-				String sentence = new String(receivePacket.getData());
-				//check ye seri shode ya na
-				
-			}
+			// while(true){
+			// 	//
+			// 	byte[] receiveData = new byte[1024];
+			// 	DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			// 	this.socket.receive(receivePacket);
+			// 	String sentence = new String(receivePacket.getData());
+			// 	//check ye seri shode ya na
+
+			// }
 			
 			
 		   // System.out.println("RECEIVED: " + sentence);
@@ -163,15 +206,16 @@ public class TCPSocketImpl extends TCPSocket {
 		if (slowStart==1){
 			ssthreshold = ssthreshold/2;
 			cwnd = 1;
+			slowStart = 0;
 		}
-		return cwnd;
+		return ssthreshold;
 		//throw new RuntimeException("Not implemented!");
 	}
 
 	@Override
 	public long getWindowSize() {
 		//ehtemalan on chizi ke to recv goftim ke ino handel kone bayad inja anjam beshe va meghdaresh ro return kone
-		return 1;
+		return cwnd;
 	}
 
 
@@ -195,4 +239,3 @@ public class TCPSocketImpl extends TCPSocket {
 		
 
 }
-
