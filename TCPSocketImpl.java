@@ -76,8 +76,66 @@ public class TCPSocketImpl extends TCPSocket {
 		});
 	}
 
+	public void handShaking(){
+		try{
+			InetAddress ip_adress = InetAddress.getByName(this.ip);
+			byte[] sendData = new byte[1024];
+			String seqNoString = Integer.toString(this.seq_No);
+			String ackNoString = Integer.toString(this.ack_No);
+			String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
+			sendData =message_for_send.getBytes();
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+			this.socket.send(sendPacket);
+			String  state = "SYN-SENT";
+
+			while(true)
+			{
+				byte[] receiveData = new byte[1024];
+				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+				this.socket.receive(receivePacket);
+				String sentence = new String(receivePacket.getData());
+				String[] splited = sentence.split("\\s+");
+				int packet_ack_num=Integer.parseInt(splited[2]);
+				int packet_seq_num=Integer.parseInt(splited[1]);
+				//InetAddress IPAddress = receivePacket.getAddress();
+				port = receivePacket.getPort();
+
+				if(state=="SYN-SENT"){
+					if(packet_ack_num==this.seq_No+1){
+
+						this.seq_No=packet_ack_num;
+						this.ack_No=packet_seq_num+1;
+						message_for_send="ACK"+" "+seqNoString+" "+ackNoString;
+						sendData =message_for_send.getBytes();
+						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+						this.socket.send(sendPacket);
+						state="ESTABLISHED";
+						//send ACK packet to server
+
+					}
+					else if(state=="ESTABLISHED"){ //receive  data
+
+						if(packet_seq_num >  this.seq_No)
+						{
+							int packet_ack;
+							packet_ack=packet_seq_num + 1;
+							ackNoString = Integer.toString(packet_ack);
+							String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
+							sendData =ack_message.getBytes();
+							sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+							this.socket.send(sendPacket);
+							break;
+						}
+					}
+				}	
+			}
+		}
+		catch (Exception ex){}	
+	}
+
 	@Override
 	public void send(String pathToFile) throws Exception {
+		handShaking();
 		//check kardane inke next sequence number kamtar as window size basheh age kamtar nabashe sabr kone
 		//age timeout gozasht bere oni ke timeout esh gozashte ro dobare befreste va timer esh ro start bezane
 		//age seq.no moshkeli nadasht  send kone , next seq.no ro handel kone 
@@ -126,52 +184,15 @@ public class TCPSocketImpl extends TCPSocket {
 		this.socket.send(sendPacket);
 		String  state = "SYN-SENT";
 		ArrayList<String> fileContent = new ArrayList<String>();
+		byte[] receiveData = new byte[1024];
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		this.socket.receive(receivePacket);
+		String sentence = new String(receivePacket.getData());
+		String[] splited = sentence.split("\\s+");
+		int packet_ack_num=Integer.parseInt(splited[2]);
+		int packet_seq_num=Integer.parseInt(splited[1]);
 
-	   
-
-		while(true)
-		{
-			byte[] receiveData = new byte[1024];
-			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-			this.socket.receive(receivePacket);
-			String sentence = new String(receivePacket.getData());
-			String[] splited = sentence.split("\\s+");
-			int packet_ack_num=Integer.parseInt(splited[2]);
-			int packet_seq_num=Integer.parseInt(splited[1]);
-			//InetAddress IPAddress = receivePacket.getAddress();
-			port = receivePacket.getPort();
-
-			if(state=="SYN-SENT"){
-				if(packet_ack_num==this.seq_No+1){
-
-					this.seq_No=packet_ack_num;
-					this.ack_No=packet_seq_num+1;
-					message_for_send="ACK"+" "+seqNoString+" "+ackNoString;
-					sendData =message_for_send.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
-					this.socket.send(sendPacket);
-					state="ESTABLISHED";
-					//send ACK packet to server
-
-				}
-				else if(state=="ESTABLISHED"){ //receive  data
-
-					if(packet_seq_num >  this.seq_No)
-					{
-						int packet_ack;
-						packet_ack=packet_seq_num + 1;
-						ackNoString = Integer.toString(packet_ack);
-						String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
-						sendData =ack_message.getBytes();
-						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
-						this.socket.send(sendPacket);
-						break;
-					}
-				}
-			}
-
-
-			while(true){
+		while(true){
 				
 				//byte[] receiveData = new byte[1024];
 				//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -194,36 +215,25 @@ public class TCPSocketImpl extends TCPSocket {
 						}
 							
 				}
-				if(flag!=-1)
+				if(flag!=-1){
 					packet_ack=flag;
 					ackNoString = Integer.toString(packet_ack);
 					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
 					sendData =ack_message.getBytes();
 					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 					this.socket.send(sendPacket);
-			
+				}
 				if (flag==-1 && packet_seq_num > this.seq_No){
-
 					packet_ack=packet_seq_num + 1;
 					ackNoString = Integer.toString(packet_ack);
-					ack_message="ACK"+" "+seqNoString+" "+ackNoString;
+					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
 					sendData =ack_message.getBytes();
 					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 					this.socket.send(sendPacket);
-				
-
-				for (int i=0;i < fileContent.size();i++)
-				{
+				}
+				for (int i=0;i < fileContent.size();i++){
 					Data +=fileContent.get(i).getBytes();
 				}
-
-
-
-				}
-				//check ye seri shode ya na
-				
-			}
-
 			// while(true){
 			// 	//
 			// 	byte[] receiveData = new byte[1024];
