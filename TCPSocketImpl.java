@@ -73,7 +73,7 @@ public class TCPSocketImpl extends TCPSocket {
 	public void receive(String pathToFile) throws Exception {
 
 		InetAddress ip_adress = InetAddress.getByName(this.ip);
-
+		String Data ="";
 		byte[] sendData = new byte[1024];
 		String seqNoString = Integer.toString(this.seq_No);
 		String ackNoString = Integer.toString(this.ack_No);
@@ -82,6 +82,8 @@ public class TCPSocketImpl extends TCPSocket {
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 		this.socket.send(sendPacket);
 		String  state = "SYN-SENT";
+		ArrayList<String> fileContent = new ArrayList<String>();
+
 	   
 
 		while(true)
@@ -115,7 +117,8 @@ public class TCPSocketImpl extends TCPSocket {
 					{
 						int packet_ack;
 						packet_ack=packet_seq_num + 1;
-						String ack_message="ACK"+" "+seqNoString;
+						ackNoString = Integer.toString(packet_ack);
+						String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
 						sendData =ack_message.getBytes();
 						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 						this.socket.send(sendPacket);
@@ -125,11 +128,54 @@ public class TCPSocketImpl extends TCPSocket {
 			}
 
 			while(true){
-				//
-				byte[] receiveData = new byte[1024];
-				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+				
+				//byte[] receiveData = new byte[1024];
+				//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+				int packet_ack=-1;
 				this.socket.receive(receivePacket);
-				String sentence = new String(receivePacket.getData());
+			    sentence = new String(receivePacket.getData());
+				String message=sentence.split("\\s+")[0];
+				String ack_number=sentence.split("\\s+")[1];
+				String seq_number=sentence.split("\\s+")[2];
+				packet_ack_num=Integer.parseInt(ack_number);
+				packet_seq_num=Integer.parseInt(seq_number);
+				int flag=-1;
+				seqNoString = Integer.toString(packet_seq_num);
+				fileContent.add(packet_seq_num-1, sentence);
+
+				for(int i=0;i < packet_seq_num-1;i++){
+					
+						if(fileContent.get(i).getBytes().equals("")){
+							flag=i;
+						}
+							
+				}
+				if(flag!=-1)
+					packet_ack=flag;
+					ackNoString = Integer.toString(packet_ack);
+					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
+					sendData =ack_message.getBytes();
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+					this.socket.send(sendPacket);
+			
+				if (flag==-1 && packet_seq_num > this.seq_No){
+
+					packet_ack=packet_seq_num + 1;
+					ackNoString = Integer.toString(packet_ack);
+					ack_message="ACK"+" "+seqNoString+" "+ackNoString;
+					sendData =ack_message.getBytes();
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+					this.socket.send(sendPacket);
+				
+
+				for (int i=0;i < fileContent.size();i++)
+				{
+					Data +=fileContent.get(i).getBytes();
+				}
+
+
+
+				}
 				//check ye seri shode ya na
 				
 			}
