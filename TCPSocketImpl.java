@@ -11,7 +11,7 @@ import java.util.TimerTask;
 
 public class TCPSocketImpl extends TCPSocket {
 	
-	private EnhancedDatagramSocket socket;
+	public EnhancedDatagramSocket socket;
 	private int slowStart; 
 	private long ssthreshold;
 	private long cwnd; 
@@ -22,7 +22,10 @@ public class TCPSocketImpl extends TCPSocket {
 	private String ip;
 	public TCPSocketImpl(String ip, int port) throws Exception {
 		super(ip, port);
-		socket= new EnhancedDatagramSocket(port);
+		// System.out.println("AAAAAAAAAAAAAAAA");
+		// this.socket= new EnhancedDatagramSocket(port);
+		this.socket= new EnhancedDatagramSocket(port);
+		// System.out.println("OOOOOOOOOOOOOOOO");
 		this.seq_No = 0;
 		this.ack_No = 0;
 		this.ip=ip;
@@ -78,6 +81,7 @@ public class TCPSocketImpl extends TCPSocket {
 
 	public void handShaking(){
 		try{
+			System.out.println("in Handshaking!");
 			InetAddress ip_adress = InetAddress.getByName(this.ip);
 			byte[] sendData = new byte[1024];
 			String seqNoString = Integer.toString(this.seq_No);
@@ -92,8 +96,10 @@ public class TCPSocketImpl extends TCPSocket {
 			{
 				byte[] receiveData = new byte[1024];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+				System.out.println(message_for_send);
 				this.socket.receive(receivePacket);
 				String sentence = new String(receivePacket.getData());
+				System.out.println(sentence);
 				String[] splited = sentence.split("\\s+");
 				int packet_ack_num=Integer.parseInt(splited[2]);
 				int packet_seq_num=Integer.parseInt(splited[1]);
@@ -130,12 +136,17 @@ public class TCPSocketImpl extends TCPSocket {
 				}	
 			}
 		}
-		catch (Exception ex){}	
+		catch (Exception ex){
+			System.out.println("Exception!");
+			ex.printStackTrace();
+			System.out.println(ex);
+		}	
 	}
 
 	@Override
 	public void send(String pathToFile) throws Exception {
 		handShaking();
+		System.out.println("Finished Handshaking!");
 		//check kardane inke next sequence number kamtar as window size basheh age kamtar nabashe sabr kone
 		//age timeout gozasht bere oni ke timeout esh gozashte ro dobare befreste va timer esh ro start bezane
 		//age seq.no moshkeli nadasht  send kone , next seq.no ro handel kone 
@@ -155,9 +166,12 @@ public class TCPSocketImpl extends TCPSocket {
 				socket.send(sendPacket);
 				next_seq_No +=1;
 				
-				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 4, socket);
+				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket);
 				t.start();
-				try{t.join();}catch(InterruptedException ie){}
+				try{
+					t.join();
+					// t.stop();
+				}catch(InterruptedException ie){}
 			}
 			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
 				sendData = fileContent.get(dup_ack_packet_num).getBytes();
@@ -231,9 +245,6 @@ public class TCPSocketImpl extends TCPSocket {
 					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 					this.socket.send(sendPacket);
 				}
-				for (int i=0;i < fileContent.size();i++){
-					Data +=fileContent.get(i).getBytes();
-				}
 			// while(true){
 			// 	//
 			// 	byte[] receiveData = new byte[1024];
@@ -251,7 +262,9 @@ public class TCPSocketImpl extends TCPSocket {
 			//port = receivePacket.getPort();
 	
 		}
-
+		// for (int i=0;i < fileContent.size();i++){
+		// 	Data +=fileContent.get(i).getBytes();
+		// }
 		
 		//check konim ack az samt moghabel amade ya mohtava 
 		//age did ack hast check kone duplicate ack hast ya na

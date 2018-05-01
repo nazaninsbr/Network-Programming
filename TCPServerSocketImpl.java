@@ -45,17 +45,16 @@ public class TCPServerSocketImpl extends TCPServerSocket {
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
                     this.socket.send(sendPacket);
                     state="SYN-RECEVED";
-
-
+                }
             }
-        }else if(state=="SYN-RECEVED"){
-            if(splited[0]=="ACK" && packet_ack_No == (this.seq_No)+1){
-                state="ESTABLISHED";
-
+            else if(state=="SYN-RECEVED"){
+                if(splited[0]=="ACK" && packet_ack_No == (this.seq_No)+1){
+                    state="ESTABLISHED";
+                    someOneIsConnected = 1;
+                }
             }
-        }
         
-            someOneIsConnected = 0;
+            
         }
         // find a way to change the IP
         TCPSocketImpl tcp_server_socket = new TCPSocketImpl("127.0.0.1", this.port);
