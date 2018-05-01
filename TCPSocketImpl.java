@@ -22,10 +22,12 @@ public class TCPSocketImpl extends TCPSocket {
 	private String ip;
 	public TCPSocketImpl(String ip, int port) throws Exception {
 		super(ip, port);
-		// System.out.println("AAAAAAAAAAAAAAAA");
+		System.out.println("AAAAAAAAAAAAAAAA");
 		// this.socket= new EnhancedDatagramSocket(port);
-		this.socket= new EnhancedDatagramSocket(port);
-		// System.out.println("OOOOOOOOOOOOOOOO");
+		try{this.socket= new EnhancedDatagramSocket(port);}
+		catch (Exception ex){}
+		
+		 System.out.println("OOOOOOOOOOOOOOOO");
 		this.seq_No = 0;
 		this.ack_No = 0;
 		this.ip=ip;

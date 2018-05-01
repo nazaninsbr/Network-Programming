@@ -9,7 +9,8 @@ public class TCPServerSocketImpl extends TCPServerSocket {
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
-        this.socket = new EnhancedDatagramSocket(port);
+        try{this.socket= new EnhancedDatagramSocket(port);}
+        catch (Exception ex){}
         this.seq_No = 0;
         this.ack_No = 0;
     }
@@ -56,6 +57,7 @@ public class TCPServerSocketImpl extends TCPServerSocket {
         
             
         }
+        
         // find a way to change the IP
         TCPSocketImpl tcp_server_socket = new TCPSocketImpl("127.0.0.1", this.port);
         return tcp_server_socket;
