@@ -25,8 +25,8 @@ public class TCPServerSocketImpl extends TCPServerSocket {
         int port;
         String state="";
         //String state = new String("");
+        System.out.println("Listening");
         while(this.someOneIsConnected==0){
-            System.out.println("Listening");
             byte[] receiveData = new byte[1024];
             byte[] sendData = new byte[1024];
             DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -38,7 +38,8 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             port = receivePacket.getPort();
             String[] splited = sentence.split("\\s+");
             int packet_seq_No = Integer.parseInt(splited[1]);
-            int packet_ack_No = Integer.parseInt(splited[2]);
+            splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
+            int packet_ack_No = Integer.parseInt(splited[2].trim());
             if(state==""){
                 if(splited[0]=="SYN"){
                     this.ack_No=packet_seq_No+1;
