@@ -91,7 +91,9 @@ public class TCPSocketImpl extends TCPSocket {
 			byte[] sendData = new byte[1024];
 			String seqNoString = Integer.toString(this.seq_No);
 			String ackNoString = Integer.toString(this.ack_No);
+			
 			String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
+			
 			sendData =message_for_send.getBytes();
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 			this.socket.send(sendPacket);
@@ -104,7 +106,7 @@ public class TCPSocketImpl extends TCPSocket {
 				System.out.println(message_for_send);
 				this.socket.receive(receivePacket);
 				String sentence = new String(receivePacket.getData());
-				System.out.println(sentence);
+				
 				String[] splited = sentence.split("\\s+");
 				int packet_ack_num=Integer.parseInt(splited[2]);
 				int packet_seq_num=Integer.parseInt(splited[1]);

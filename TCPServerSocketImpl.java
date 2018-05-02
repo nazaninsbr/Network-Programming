@@ -12,7 +12,7 @@ public class TCPServerSocketImpl extends TCPServerSocket {
         this.someOneIsConnected = 0;
         this.port=port;
         this.socket= new EnhancedDatagramSocket(this.port);
-        
+
 
         this.seq_No = 0;
         this.ack_No = 0;
@@ -36,15 +36,24 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             System.out.println("RECEIVED: " + sentence);
             InetAddress IPAddress = receivePacket.getAddress();
             port = receivePacket.getPort();
+
             String[] splited = sentence.split("\\s+");
-            int packet_seq_No = Integer.parseInt(splited[1]);
-            int packet_ack_No = Integer.parseInt(splited[2]);
+          
+            int packet_seq_No =  Integer.parseInt(splited[1]);
+            
+            //int packet_seq_No=Integer.valueOf(splited[1]);
+            //int packet_ack_No=Integer.valueOf(splited[1]);
+            int packet_ack_No = Integer.valueOf(splited[2]);
+            
+           
+           
             if(state==""){
                 if(splited[0]=="SYN"){
                     this.ack_No=packet_seq_No+1;
                     String ackNoString = Integer.toString(this.ack_No);
                     String seqNoString = Integer.toString(this.seq_No);
                     String sentence_for_send = "SYN-ACK" + " "+seqNoString+" "+ackNoString;
+                    
                     sendData = sentence_for_send.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
                     this.socket.send(sendPacket);
