@@ -40,12 +40,12 @@ public class TCPSocketImpl extends TCPSocket {
 		cwnd = 1;
 	}
 
-	public static Thread timeoutPacket(final int seqNo, final String ip, final ArrayList<String> fileContent, final int seconds, final EnhancedDatagramSocket socket) throws Exception{
+	public static Thread timeoutPacket(final int seqNo, final String ip, final ArrayList<String> fileContent, final int seconds, final EnhancedDatagramSocket socket,final int port) throws Exception{
 		byte[] sendData = new byte[1024];
 		sendData =fileContent.get(seqNo).getBytes();
 		InetAddress ip_adress = InetAddress.getByName(ip);
 		ExecutorService service = Executors.newSingleThreadExecutor();
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length);
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress,port);
 		return new Thread(new Runnable(){
 			@Override
 			public void run(){
@@ -59,12 +59,18 @@ public class TCPSocketImpl extends TCPSocket {
             						System.out.println("Time's up!");
 									socket.send(sendPacket);
 									timer.cancel();
+
             					}
-            					catch (IOException ioe){}
+            					catch (IOException ioe){
+            						System.out.println("Exception!");
+									ioe.printStackTrace();
+									System.out.println(ioe);
+								}
 			
 							}
 					}, seconds*1000);
 					while(true){
+						
 						socket.receive(receivePacket);
 						String sentence = new String(receivePacket.getData());
 					    String message =sentence.split("\\s+")[0];
@@ -72,12 +78,19 @@ public class TCPSocketImpl extends TCPSocket {
 					    String seq_number =sentence.split("\\s+")[2];
 					    int packet_ack_num =Integer.parseInt(ack_number);
 					    int packet_seq_num =Integer.parseInt(seq_number);
+					    System.out.println("here after time's up");
 					    if(packet_ack_num-1==seqNo){
 					    	timer.cancel();
 					    	return;
 					    }
+					    
 					}
+
 				}catch(IOException ioe){
+
+					System.out.println("Exception!");
+					ioe.printStackTrace();
+					System.out.println(ioe);
 
 				}
 			}
@@ -185,7 +198,7 @@ public class TCPSocketImpl extends TCPSocket {
 				socket.send(sendPacket);
 				next_seq_No +=1;
 				
-				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket);
+				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket,port);
 				t.start();
 				try{
 					t.join();
