@@ -35,6 +35,7 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             String sentence = new String(receivePacket.getData());
             System.out.println("RECEIVED: " + sentence);
             InetAddress IPAddress = receivePacket.getAddress();
+            System.out.println("ip getAddress" + IPAddress);
             port = receivePacket.getPort();
 
             String[] splited = sentence.split("\\s+");
@@ -46,12 +47,18 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
             int packet_ack_No = Integer.parseInt(splited[2].trim());
 
-            if(state==""){
-                if(splited[0]=="SYN"){
+            if(state.equals("")){
+                
+                if(splited[0].equals("SYN")){
+                    System.out.println("here here here");
                     this.ack_No=packet_seq_No+1;
+                    System.out.println("ackNo" + this.ack_No);
                     String ackNoString = Integer.toString(this.ack_No);
+                    System.out.println("ackNoString" + ackNoString);
                     String seqNoString = Integer.toString(this.seq_No);
+                    System.out.println("seqNoString" + seqNoString);
                     String sentence_for_send = "SYN-ACK" + " "+seqNoString+" "+ackNoString;
+                    System.out.println("sentence " + sentence_for_send);
                     
                     sendData = sentence_for_send.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
@@ -59,7 +66,7 @@ public class TCPServerSocketImpl extends TCPServerSocket {
                     state="SYN-RECEVED";
                 }
             }
-            else if(state=="SYN-RECEVED"){
+            else if(state.equals("SYN-RECEVED")){
                 if(splited[0]=="ACK" && packet_ack_No == (this.seq_No)+1){
                     state="ESTABLISHED";
                     someOneIsConnected = 1;

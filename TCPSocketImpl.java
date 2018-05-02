@@ -95,6 +95,7 @@ public class TCPSocketImpl extends TCPSocket {
 			String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
 			
 			sendData =message_for_send.getBytes();
+			System.out.println("message " + message_for_send);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 			this.socket.send(sendPacket);
 			String  state = "SYN-SENT";
@@ -103,30 +104,34 @@ public class TCPSocketImpl extends TCPSocket {
 			{
 				byte[] receiveData = new byte[1024];
 				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				System.out.println(message_for_send);
+				//System.out.println(message_for_send);
 				this.socket.receive(receivePacket);
 				String sentence = new String(receivePacket.getData());
+				System.out.println("sentence: "+ sentence);
 				
 				String[] splited = sentence.split("\\s+");
-				int packet_ack_num=Integer.parseInt(splited[2]);
-				int packet_seq_num=Integer.parseInt(splited[1]);
+				int packet_seq_num = Integer.parseInt(splited[1]);
+            	splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
+            	int packet_ack_num = Integer.parseInt(splited[2].trim());
+				
 				//InetAddress IPAddress = receivePacket.getAddress();
 				port = receivePacket.getPort();
 
-				if(state=="SYN-SENT"){
+				if(state.equals("SYN-SENT")){
 					if(packet_ack_num==this.seq_No+1){
 
 						this.seq_No=packet_ack_num;
 						this.ack_No=packet_seq_num+1;
 						message_for_send="ACK"+" "+seqNoString+" "+ackNoString;
 						sendData =message_for_send.getBytes();
+						System.out.println("second message: " + message_for_send);
 						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 						this.socket.send(sendPacket);
 						state="ESTABLISHED";
 						//send ACK packet to server
 
 					}
-					else if(state=="ESTABLISHED"){ //receive  data
+					else if(state.equals("ESTABLISHED")){ //receive  data
 
 						if(packet_seq_num >  this.seq_No)
 						{
@@ -134,6 +139,7 @@ public class TCPSocketImpl extends TCPSocket {
 							packet_ack=packet_seq_num + 1;
 							ackNoString = Integer.toString(packet_ack);
 							String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
+							System.out.println("ack message" + ack_message);
 							sendData =ack_message.getBytes();
 							sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 							this.socket.send(sendPacket);
