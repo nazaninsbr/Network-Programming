@@ -66,10 +66,12 @@ public class TCPServerSocketImpl extends TCPServerSocket {
                     state="SYN-RECEVED";
                 }
             }
-            else if(state.equals("SYN-RECEVED")){
-                if(splited[0]=="ACK" && packet_ack_No == (this.seq_No)+1){
+            if(state.equals("SYN-RECEVED")){
+                
+                if(splited[0].equals("ACK") && packet_ack_No == (this.seq_No)+1){
                     state="ESTABLISHED";
                     someOneIsConnected = 1;
+                    System.out.println("ESTABLISHED");
                 }
             }
         

@@ -127,24 +127,28 @@ public class TCPSocketImpl extends TCPSocket {
 						System.out.println("second message: " + message_for_send);
 						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 						this.socket.send(sendPacket);
+						
 						state="ESTABLISHED";
+						System.out.println("here here");
+						System.out.println("state" + state);
 						//send ACK packet to server
 
 					}
-					else if(state.equals("ESTABLISHED")){ //receive  data
-
-						if(packet_seq_num >  this.seq_No)
-						{
-							int packet_ack;
-							packet_ack=packet_seq_num + 1;
-							ackNoString = Integer.toString(packet_ack);
-							String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
-							System.out.println("ack message" + ack_message);
-							sendData =ack_message.getBytes();
-							sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
-							this.socket.send(sendPacket);
-							break;
-						}
+					if(state.equals("ESTABLISHED")){
+						System.out.println("ESTABLISHED state: ");
+							/*if(packet_seq_num >  this.seq_No)
+							{
+								int packet_ack;
+								packet_ack=packet_seq_num + 1;
+								ackNoString = Integer.toString(packet_ack);
+								String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
+								System.out.println("ack message" + ack_message);
+								sendData =ack_message.getBytes();
+								sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+								this.socket.send(sendPacket);
+								
+							}*/
+						break;
 					}
 				}	
 			}
