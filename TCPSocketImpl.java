@@ -122,6 +122,8 @@ public class TCPSocketImpl extends TCPSocket {
 
 						this.seq_No=packet_ack_num;
 						this.ack_No=packet_seq_num+1;
+						seqNoString = Integer.toString(this.seq_No);
+						ackNoString = Integer.toString(this.ack_No);
 						message_for_send="ACK"+" "+seqNoString+" "+ackNoString;
 						sendData =message_for_send.getBytes();
 						System.out.println("second message: " + message_for_send);
