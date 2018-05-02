@@ -9,8 +9,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public abstract class TCPSocket implements CongestionWindowPlotter {
-    protected String ip; 
-    protected int port;
+      protected String ip; 
+      protected int port;
     public TCPSocket(String ip, int port) throws Exception {
         this.ip = ip; 
         this.port = port;

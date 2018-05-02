@@ -6,11 +6,14 @@ public class TCPServerSocketImpl extends TCPServerSocket {
     public EnhancedDatagramSocket socket;
     private int seq_No; 
     private int ack_No;
+    private int port;
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
-        try{this.socket= new EnhancedDatagramSocket(port);}
-        catch (Exception ex){}
+        this.port=port;
+        this.socket= new EnhancedDatagramSocket(this.port);
+        
+
         this.seq_No = 0;
         this.ack_No = 0;
     }
