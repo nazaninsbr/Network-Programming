@@ -59,12 +59,16 @@ public class TCPSocketImpl extends TCPSocket {
             						System.out.println("Time's up!");
 									socket.send(sendPacket);
 									timer.cancel();
-
+									// Thread t = timeoutPacket(seqNo, ip, fileContent, seconds, socket,port);
+									// t.join();
             					}
             					catch (IOException ioe){
             						System.out.println("Exception!");
 									ioe.printStackTrace();
 									System.out.println(ioe);
+								}
+								catch(Exception ie){
+									System.out.println("Exception 2!");
 								}
 			
 							}
@@ -194,7 +198,10 @@ public class TCPSocketImpl extends TCPSocket {
 		while(next_seq_No< fileContent.size()){
 			if(next_seq_No <= cwnd){
 				sendData =fileContent.get(next_seq_No).getBytes();
+				System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+				// System.out.println("waiting");
+				// TimeUnit.SECONDS.sleep(20);
 				socket.send(sendPacket);
 				System.out.println("Sent One byte of Data to port: "+port);
 				next_seq_No +=1;
@@ -245,10 +252,10 @@ public class TCPSocketImpl extends TCPSocket {
 		int packet_seq_num;
 
 		while(true){
-				System.out.println("In loop, port: "+port);
 				//byte[] receiveData = new byte[1024];
 				//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				int packet_ack=-1;
+				System.out.println("In loop, port: "+port);
 				this.socket.receive(receivePacket);
 				System.out.println("Got One byte of Data");
 			    sentence = new String(receivePacket.getData());
