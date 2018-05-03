@@ -50,15 +50,15 @@ public class TCPServerSocketImpl extends TCPServerSocket {
             if(state.equals("")){
                 
                 if(splited[0].equals("SYN")){
-                    System.out.println("here here here");
+                    // System.out.println("here here here");
                     this.ack_No=packet_seq_No+1;
-                    System.out.println("ackNo" + this.ack_No);
+                    // System.out.println("ACK No:" + this.ack_No);
                     String ackNoString = Integer.toString(this.ack_No);
-                    System.out.println("ackNoString" + ackNoString);
+                    System.out.println("ACK No String:" + ackNoString);
                     String seqNoString = Integer.toString(this.seq_No);
-                    System.out.println("seqNoString" + seqNoString);
+                    System.out.println("seq No String" + seqNoString);
                     String sentence_for_send = "SYN-ACK" + " "+seqNoString+" "+ackNoString;
-                    System.out.println("sentence " + sentence_for_send);
+                    System.out.println("sentence: " + sentence_for_send);
                     
                     sendData = sentence_for_send.getBytes();
                     DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);

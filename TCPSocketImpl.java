@@ -70,7 +70,7 @@ public class TCPSocketImpl extends TCPSocket {
 							}
 					}, seconds*1000);
 					while(true){
-						
+						System.out.println("Waiting for ACK");
 						socket.receive(receivePacket);
 						String sentence = new String(receivePacket.getData());
 					    String message =sentence.split("\\s+")[0];
@@ -144,13 +144,13 @@ public class TCPSocketImpl extends TCPSocket {
 						this.socket.send(sendPacket);
 						
 						state="ESTABLISHED";
-						System.out.println("here here");
-						System.out.println("state" + state);
+						// System.out.println("here here");
+						// System.out.println("state" + state);
 						//send ACK packet to server
 
 					}
 					if(state.equals("ESTABLISHED")){
-						System.out.println("ESTABLISHED state: ");
+						System.out.println("ESTABLISHED Connection");
 							/*if(packet_seq_num >  this.seq_No)
 							{
 								int packet_ack;
@@ -196,12 +196,14 @@ public class TCPSocketImpl extends TCPSocket {
 				sendData =fileContent.get(next_seq_No).getBytes();
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 				socket.send(sendPacket);
+				System.out.println("Sent One byte of Data to port: "+port);
 				next_seq_No +=1;
 				
 				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket,port);
 				t.start();
 				try{
 					t.join();
+					getWindowSize();
 					// t.stop();
 				}catch(InterruptedException ie){}
 			}
@@ -218,32 +220,37 @@ public class TCPSocketImpl extends TCPSocket {
 	}
 	@Override
 	public void receive(String pathToFile) throws Exception {
-
+		System.out.println("Started Receive");
 		InetAddress ip_adress = InetAddress.getByName(this.ip);
 		String Data ="";
 		byte[] sendData = new byte[1024];
 		String seqNoString = Integer.toString(this.seq_No);
 		String ackNoString = Integer.toString(this.ack_No);
-		String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
-		sendData =message_for_send.getBytes();
+		// String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
+		// sendData =message_for_send.getBytes();
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
-		this.socket.send(sendPacket);
-		String  state = "SYN-SENT";
+		// this.socket.send(sendPacket);
+		// String  state = "SYN-SENT";
 		ArrayList<String> fileContent = new ArrayList<String>();
 		byte[] receiveData = new byte[1024];
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-		this.socket.receive(receivePacket);
-		String sentence = new String(receivePacket.getData());
-		String[] splited = sentence.split("\\s+");
-		int packet_ack_num=Integer.parseInt(splited[2]);
-		int packet_seq_num=Integer.parseInt(splited[1]);
+		// this.socket.receive(receivePacket);
+		// String sentence = new String(receivePacket.getData());
+		// String[] splited = sentence.split("\\s+");
+		// int packet_ack_num=Integer.parseInt(splited[2]);
+		// int packet_seq_num=Integer.parseInt(splited[1]);
+		String sentence = new String();
+		String[] splited;
+		int packet_ack_num;
+		int packet_seq_num;
 
 		while(true){
-				
+				System.out.println("In loop, port: "+port);
 				//byte[] receiveData = new byte[1024];
 				//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				int packet_ack=-1;
 				this.socket.receive(receivePacket);
+				System.out.println("Got One byte of Data");
 			    sentence = new String(receivePacket.getData());
 				String message=sentence.split("\\s+")[0];
 				String ack_number=sentence.split("\\s+")[1];
@@ -276,6 +283,7 @@ public class TCPSocketImpl extends TCPSocket {
 					sendData =ack_message.getBytes();
 					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
 					this.socket.send(sendPacket);
+					System.out.println("Sent Ack");
 				}
 			// while(true){
 			// 	//
@@ -328,6 +336,12 @@ public class TCPSocketImpl extends TCPSocket {
 	@Override
 	public long getWindowSize() {
 		//ehtemalan on chizi ke to recv goftim ke ino handel kone bayad inja anjam beshe va meghdaresh ro return kone
+		if(cwnd < ssthreshold){
+			cwnd *= 2; 
+		}
+		else{
+			cwnd += 1;
+		}
 		return cwnd;
 	}
 
