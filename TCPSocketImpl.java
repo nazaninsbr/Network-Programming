@@ -206,7 +206,7 @@ public class TCPSocketImpl extends TCPSocket {
 			if(next_seq_No <= cwnd){
 				sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
 				sendData = sendDataString.getBytes();
-				System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
+				System.out.println("File Part To Send: "+sendDataString);
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 				// System.out.println("waiting");
 				// TimeUnit.SECONDS.sleep(20);
@@ -271,7 +271,6 @@ public class TCPSocketImpl extends TCPSocket {
 				int packet_ack=-1;
 
 				System.out.println("In loop, port: "+this.port);
-				socket.receive(receivePacket);
 				
 
 				System.out.println("In loop, port: "+port);
@@ -287,8 +286,7 @@ public class TCPSocketImpl extends TCPSocket {
             	//splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
             	//packet_ack_num = Integer.parseInt(splited[2].trim());
             	System.out.println("packet_seq_num" + packet_seq_num);
-				seqNoString = Integer.toString(packet_seq_num);
-				fileContent.add(packet_seq_num-1, sentence);
+				//seqNoString = Integer.toString(packet_seq_num);
 				if( packet_seq_num == this.excepted_seq_No)
 				{
 					
