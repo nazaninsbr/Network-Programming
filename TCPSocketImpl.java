@@ -314,6 +314,7 @@ public class TCPSocketImpl extends TCPSocket {
 
 
 
+
 				//for(int i=0;i < packet_seq_num-1;i++){
 					
 						//if(fileContent.get(i).getBytes().equals("")){
@@ -338,9 +339,10 @@ public class TCPSocketImpl extends TCPSocket {
 			//port = receivePacket.getPort();
 	
 		}
-		// for (int i=0;i < fileContent.size();i++){
+		 for (int i=0;i < fileContent.size();i++){
+		 	writeToFile( pathToFile,fileContent.get(i));
 		// 	Data +=fileContent.get(i).getBytes();
-		// }
+		 }
 		
 		//check konim ack az samt moghabel amade ya mohtava 
 		//age did ack hast check kone duplicate ack hast ya na
@@ -399,6 +401,17 @@ public class TCPSocketImpl extends TCPSocket {
 		} 
 		return fileContent;
 	}
+	public static void writeToFile(String filename, String str){
+        try{
+            BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
+            writer.append(str);
+            writer.close();
+        }
+        catch (Exception e){
+            System.out.println("An Error writing to file!\n");
+            System.out.println(e);
+        }
+    }
 		
 
 }
