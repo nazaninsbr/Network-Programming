@@ -200,10 +200,12 @@ public class TCPSocketImpl extends TCPSocket {
 		
 		int dup_ack_packet_num = -1; 
 		int dup_ack_times = 0;
-
+		String seqNoString;
+		String sendDataString; 
 		while(next_seq_No< fileContent.size()){
 			if(next_seq_No <= cwnd){
-				sendData =fileContent.get(next_seq_No).getBytes();
+				sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
+				sendData = sendDataString.getBytes();
 				System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 				// System.out.println("waiting");
@@ -221,7 +223,8 @@ public class TCPSocketImpl extends TCPSocket {
 				}catch(InterruptedException ie){}
 			}
 			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
-				sendData = fileContent.get(dup_ack_packet_num).getBytes();
+				sendDataString = Integer.toString(dup_ack_packet_num) +" "+ fileContent.get(next_seq_No);
+				sendData = sendDataString.getBytes();
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 				socket.send(sendPacket);
 				dup_ack_packet_num = -1;
