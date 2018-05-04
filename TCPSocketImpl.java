@@ -269,6 +269,7 @@ public class TCPSocketImpl extends TCPSocket {
 
 				System.out.println("In loop, port: "+this.port);
 				socket.receive(receivePacket);
+				
 
 				System.out.println("In loop, port: "+port);
 				System.out.println("Sending packets to, port: "+this_send_port);
