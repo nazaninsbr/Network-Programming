@@ -10,8 +10,9 @@ public class TCPServerSocketImpl extends TCPServerSocket {
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
-        this.port=port;
+         this.port=port;
         this.socket= new EnhancedDatagramSocket(this.port);
+
 
 
         this.seq_No = 0;

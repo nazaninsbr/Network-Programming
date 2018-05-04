@@ -25,10 +25,13 @@ public class TCPSocketImpl extends TCPSocket {
 		// System.out.println("AAAAAAAAAAAAAAAA");
 		//this.port=port;
 		// this.socket= new EnhancedDatagramSocket(port);
-
+		
 		this.socket= new EnhancedDatagramSocket(this.port);
 		this.port=port;
 		this.ip=ip;
+		
+
+		
 		
 		
 		 // System.out.println("OOOOOOOOOOOOOOOO");
@@ -38,6 +41,8 @@ public class TCPSocketImpl extends TCPSocket {
 		this.next_seq_No = 0;
 		slowStart = 0;
 		cwnd = 1;
+		//handShaking();
+		
 	}
 
 	public static Thread timeoutPacket(final int seqNo, final String ip, final ArrayList<String> fileContent, final int seconds, final EnhancedDatagramSocket socket,final int port) throws Exception{
@@ -228,19 +233,21 @@ public class TCPSocketImpl extends TCPSocket {
 	@Override
 	public void receive(String pathToFile) throws Exception {
 		System.out.println("Started Receive");
-		InetAddress ip_adress = InetAddress.getByName(this.ip);
+		//InetAddress ip_adress = InetAddress.getByName(this.ip);
+		InetAddress ip_adress = InetAddress.getLocalHost();
 		String Data ="";
 		byte[] sendData = new byte[1024];
 		String seqNoString = Integer.toString(this.seq_No);
 		String ackNoString = Integer.toString(this.ack_No);
 		// String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
 		// sendData =message_for_send.getBytes();
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, this.port);
 		// this.socket.send(sendPacket);
 		// String  state = "SYN-SENT";
 		ArrayList<String> fileContent = new ArrayList<String>();
 		byte[] receiveData = new byte[1024];
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
 		// this.socket.receive(receivePacket);
 		// String sentence = new String(receivePacket.getData());
 		// String[] splited = sentence.split("\\s+");
@@ -255,8 +262,8 @@ public class TCPSocketImpl extends TCPSocket {
 				//byte[] receiveData = new byte[1024];
 				//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				int packet_ack=-1;
-				System.out.println("In loop, port: "+port);
-				this.socket.receive(receivePacket);
+				System.out.println("In loop, port: "+this.port);
+				socket.receive(receivePacket);
 				System.out.println("Got One byte of Data");
 			    sentence = new String(receivePacket.getData());
 				String message=sentence.split("\\s+")[0];
@@ -302,7 +309,7 @@ public class TCPSocketImpl extends TCPSocket {
 
 			// }
 
-			
+			 break;
 			
 		   // System.out.println("RECEIVED: " + sentence);
 		   //InetAddress IPAddress = receivePacket.getAddress();
