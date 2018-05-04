@@ -7,14 +7,17 @@ public class TCPServerSocketImpl extends TCPServerSocket {
     private int seq_No; 
     private int ack_No;
     private int port;
+    private int send_port;
     public TCPServerSocketImpl(int port) throws Exception {
         super(port);
         this.someOneIsConnected = 0;
-         this.port=port;
+        this.port=port;
         this.socket= new EnhancedDatagramSocket(this.port);
 
 
 
+
+        this.send_port = 12346;
         this.seq_No = 0;
         this.ack_No = 0;
     }
@@ -62,8 +65,9 @@ public class TCPServerSocketImpl extends TCPServerSocket {
                     System.out.println("sentence: " + sentence_for_send);
                     
                     sendData = sentence_for_send.getBytes();
-                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+                    DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, send_port);
                     this.socket.send(sendPacket);
+                    System.out.println("sendt it");
                     state="SYN-RECEVED";
                 }
             }
@@ -80,7 +84,7 @@ public class TCPServerSocketImpl extends TCPServerSocket {
         }
         
         // find a way to change the IP
-        TCPSocketImpl tcp_server_socket = new TCPSocketImpl("127.0.0.1", this.port);
+        TCPSocketImpl tcp_server_socket = new TCPSocketImpl("127.0.0.1",3456);
         return tcp_server_socket;
     }
 

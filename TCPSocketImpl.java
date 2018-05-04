@@ -18,6 +18,7 @@ public class TCPSocketImpl extends TCPSocket {
 	private int seq_No; 
 	private int ack_No;
 	private int port;
+	private int send_port;
 	private int next_seq_No;
 	private String ip;
 	public TCPSocketImpl(String ip, int port) throws Exception {
@@ -25,14 +26,12 @@ public class TCPSocketImpl extends TCPSocket {
 		// System.out.println("AAAAAAAAAAAAAAAA");
 		//this.port=port;
 		// this.socket= new EnhancedDatagramSocket(port);
-		
-		this.socket= new EnhancedDatagramSocket(this.port);
 		this.port=port;
 		this.ip=ip;
-		
+		this.socket= new EnhancedDatagramSocket(this.port);
 
-		
-		
+		this.send_port = 12345;
+
 		
 		 // System.out.println("OOOOOOOOOOOOOOOO");
 		this.seq_No = 0;
@@ -118,7 +117,7 @@ public class TCPSocketImpl extends TCPSocket {
 			
 			sendData =message_for_send.getBytes();
 			System.out.println("message " + message_for_send);
-			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, send_port);
 			this.socket.send(sendPacket);
 			String  state = "SYN-SENT";
 
@@ -149,7 +148,7 @@ public class TCPSocketImpl extends TCPSocket {
 						message_for_send="ACK"+" "+seqNoString+" "+ackNoString;
 						sendData =message_for_send.getBytes();
 						System.out.println("second message: " + message_for_send);
-						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, send_port);
 						this.socket.send(sendPacket);
 						
 						state="ESTABLISHED";
@@ -204,14 +203,14 @@ public class TCPSocketImpl extends TCPSocket {
 			if(next_seq_No <= cwnd){
 				sendData =fileContent.get(next_seq_No).getBytes();
 				System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
-				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 				// System.out.println("waiting");
 				// TimeUnit.SECONDS.sleep(20);
 				socket.send(sendPacket);
-				System.out.println("Sent One byte of Data to port: "+port);
+				System.out.println("Sent One byte of Data to port: "+3456);
 				next_seq_No +=1;
 				
-				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket,port);
+				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket,3456);
 				t.start();
 				try{
 					t.join();
@@ -221,7 +220,7 @@ public class TCPSocketImpl extends TCPSocket {
 			}
 			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
 				sendData = fileContent.get(dup_ack_packet_num).getBytes();
-				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 				socket.send(sendPacket);
 				dup_ack_packet_num = -1;
 				dup_ack_times = 0;
@@ -232,6 +231,7 @@ public class TCPSocketImpl extends TCPSocket {
 	}
 	@Override
 	public void receive(String pathToFile) throws Exception {
+		this.send_port = 12345;
 		System.out.println("Started Receive");
 		//InetAddress ip_adress = InetAddress.getByName(this.ip);
 		InetAddress ip_adress = InetAddress.getLocalHost();
@@ -241,7 +241,9 @@ public class TCPSocketImpl extends TCPSocket {
 		String ackNoString = Integer.toString(this.ack_No);
 		// String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
 		// sendData =message_for_send.getBytes();
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, this.port);
+
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+
 		// this.socket.send(sendPacket);
 		// String  state = "SYN-SENT";
 		ArrayList<String> fileContent = new ArrayList<String>();
@@ -262,32 +264,41 @@ public class TCPSocketImpl extends TCPSocket {
 				//byte[] receiveData = new byte[1024];
 				//DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 				int packet_ack=-1;
+
 				System.out.println("In loop, port: "+this.port);
 				socket.receive(receivePacket);
+
+				System.out.println("In loop, port: "+port);
+				System.out.println("Sending packets to, port: "+3456);
+				this.socket.receive(receivePacket);
+
 				System.out.println("Got One byte of Data");
 			    sentence = new String(receivePacket.getData());
-				String message=sentence.split("\\s+")[0];
-				String ack_number=sentence.split("\\s+")[1];
-				String seq_number=sentence.split("\\s+")[2];
-				packet_ack_num=Integer.parseInt(ack_number);
-				packet_seq_num=Integer.parseInt(seq_number);
+			    System.out.println("Got message:" + sentence);
+
+			    splited = sentence.split("\\s+");
+				packet_seq_num = Integer.parseInt(splited[1]);
+            	//splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
+            	//packet_ack_num = Integer.parseInt(splited[2].trim());
+            	System.out.println("packet_seq_num" + packet_seq_num);
+				
 				int flag=-1;
 				seqNoString = Integer.toString(packet_seq_num);
 				fileContent.add(packet_seq_num-1, sentence);
 
-				for(int i=0;i < packet_seq_num-1;i++){
+				//for(int i=0;i < packet_seq_num-1;i++){
 					
-						if(fileContent.get(i).getBytes().equals("")){
-							flag=i;
-						}
+						//if(fileContent.get(i).getBytes().equals("")){
+							//flag=i;
+						//}
 							
-				}
+				//}
 				if(flag!=-1){
 					packet_ack=flag;
 					ackNoString = Integer.toString(packet_ack);
 					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
 					sendData =ack_message.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, send_port);
 					this.socket.send(sendPacket);
 				}
 				if (flag==-1 && packet_seq_num > this.seq_No){
@@ -295,7 +306,7 @@ public class TCPSocketImpl extends TCPSocket {
 					ackNoString = Integer.toString(packet_ack);
 					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
 					sendData =ack_message.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, port);
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 					this.socket.send(sendPacket);
 					System.out.println("Sent Ack");
 				}
