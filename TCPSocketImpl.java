@@ -36,6 +36,7 @@ public class TCPSocketImpl extends TCPSocket {
 		 // System.out.println("OOOOOOOOOOOOOOOO");
 		this.seq_No = 0;
 		this.ack_No = 0;
+		this.excepted_seq_No = 0;
 		
 		this.next_seq_No = 0;
 		slowStart = 0;
@@ -277,14 +278,37 @@ public class TCPSocketImpl extends TCPSocket {
 			    System.out.println("Got message:" + sentence);
 
 			    splited = sentence.split("\\s+");
-				packet_seq_num = Integer.parseInt(splited[1]);
+				packet_seq_num = Integer.parseInt(splited[0]);
             	//splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
             	//packet_ack_num = Integer.parseInt(splited[2].trim());
             	System.out.println("packet_seq_num" + packet_seq_num);
-				
-				int flag=-1;
 				seqNoString = Integer.toString(packet_seq_num);
 				fileContent.add(packet_seq_num-1, sentence);
+				if( packet_seq_num == this.excepted_seq_No)
+				{
+					this.excepted_seq_No += 1;
+					packet_ack = this.excepted_seq_No;
+					ackNoString = Integer.toString(packet_ack);
+					String ack_message="ACK"+" "+ackNoString;
+					sendData =ack_message.getBytes();
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+					this.socket.send(sendPacket);
+					System.out.println("Sent Ack");
+					fileContent.add(splited[1]);
+
+				}
+				else
+				{
+					packet_ack = this.excepted_seq_No;
+					ackNoString = Integer.toString(packet_ack);
+					String ack_message="ACK"+" "+ackNoString;
+					sendData =ack_message.getBytes();
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+					this.socket.send(sendPacket);
+					System.out.println("Sent Ack");
+				}
+
+
 
 				//for(int i=0;i < packet_seq_num-1;i++){
 					
@@ -293,23 +317,6 @@ public class TCPSocketImpl extends TCPSocket {
 						//}
 							
 				//}
-				if(flag!=-1){
-					packet_ack=flag;
-					ackNoString = Integer.toString(packet_ack);
-					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
-					sendData =ack_message.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, send_port);
-					this.socket.send(sendPacket);
-				}
-				if (flag==-1 && packet_seq_num > this.seq_No){
-					packet_ack=packet_seq_num + 1;
-					ackNoString = Integer.toString(packet_ack);
-					String ack_message="ACK"+" "+seqNoString+" "+ackNoString;
-					sendData =ack_message.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
-					this.socket.send(sendPacket);
-					System.out.println("Sent Ack");
-				}
 			// while(true){
 			// 	//
 			// 	byte[] receiveData = new byte[1024];
