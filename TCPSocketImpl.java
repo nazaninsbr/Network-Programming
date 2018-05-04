@@ -21,6 +21,7 @@ public class TCPSocketImpl extends TCPSocket {
 	private int send_port;
 	private int next_seq_No;
 	private String ip;
+	private int excepted_seq_No;
 	public TCPSocketImpl(String ip, int port) throws Exception {
 		super(ip, port);
 		// System.out.println("AAAAAAAAAAAAAAAA");
@@ -232,7 +233,7 @@ public class TCPSocketImpl extends TCPSocket {
 	}
 	@Override
 	public void receive(String pathToFile) throws Exception {
-		this.send_port = 12345;
+		int this_send_port = 12346;
 		System.out.println("Started Receive");
 		//InetAddress ip_adress = InetAddress.getByName(this.ip);
 		InetAddress ip_adress = InetAddress.getLocalHost();
@@ -243,7 +244,7 @@ public class TCPSocketImpl extends TCPSocket {
 		// String message_for_send="SYN"+" "+seqNoString+" "+ackNoString;
 		// sendData =message_for_send.getBytes();
 
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, this_send_port);
 
 		// this.socket.send(sendPacket);
 		// String  state = "SYN-SENT";
@@ -270,7 +271,7 @@ public class TCPSocketImpl extends TCPSocket {
 				socket.receive(receivePacket);
 
 				System.out.println("In loop, port: "+port);
-				System.out.println("Sending packets to, port: "+3456);
+				System.out.println("Sending packets to, port: "+this_send_port);
 				this.socket.receive(receivePacket);
 
 				System.out.println("Got One byte of Data");
@@ -291,7 +292,7 @@ public class TCPSocketImpl extends TCPSocket {
 					ackNoString = Integer.toString(packet_ack);
 					String ack_message="ACK"+" "+ackNoString;
 					sendData =ack_message.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, this_send_port);
 					this.socket.send(sendPacket);
 					System.out.println("Sent Ack");
 					fileContent.add(splited[1]);
@@ -304,7 +305,7 @@ public class TCPSocketImpl extends TCPSocket {
 					ackNoString = Integer.toString(packet_ack);
 					String ack_message="ACK"+" "+ackNoString;
 					sendData =ack_message.getBytes();
-					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+					sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, this_send_port);
 					this.socket.send(sendPacket);
 					System.out.println("Sent Ack");
 				}
