@@ -61,16 +61,16 @@ public class TCPSocketImpl extends TCPSocket {
 					DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 					Timer timer = new Timer();
 					timer.schedule(new TimerTask(){ @Override
-            				public void run(){
-            					try{
-            						System.out.println("Time's up!");
+							public void run(){
+								try{
+									System.out.println("Time's up!");
 									socket.send(sendPacket);
 									timer.cancel();
 									// Thread t = timeoutPacket(seqNo, ip, fileContent, seconds, socket,port);
 									// t.join();
-            					}
-            					catch (IOException ioe){
-            						System.out.println("Exception!");
+								}
+								catch (IOException ioe){
+									System.out.println("Exception!");
 									ioe.printStackTrace();
 									System.out.println(ioe);
 								}
@@ -84,17 +84,17 @@ public class TCPSocketImpl extends TCPSocket {
 						System.out.println("Waiting for ACK");
 						socket.receive(receivePacket);
 						String sentence = new String(receivePacket.getData());
-					    String message =sentence.split("\\s+")[0];
-					    String ack_number =sentence.split("\\s+")[1];
-					    String seq_number =sentence.split("\\s+")[2];
-					    int packet_ack_num =Integer.parseInt(ack_number);
-					    int packet_seq_num =Integer.parseInt(seq_number);
-					    System.out.println("here after time's up");
-					    if(packet_ack_num-1==seqNo){
-					    	timer.cancel();
-					    	return;
-					    }
-					    
+						String message =sentence.split("\\s+")[0];
+						String ack_number =sentence.split("\\s+")[1];
+						String seq_number =sentence.split("\\s+")[2];
+						int packet_ack_num =Integer.parseInt(ack_number);
+						int packet_seq_num =Integer.parseInt(seq_number);
+						System.out.println("here after time's up");
+						if(packet_ack_num-1==seqNo){
+							timer.cancel();
+							return;
+						}
+						
 					}
 
 				}catch(IOException ioe){
@@ -135,8 +135,8 @@ public class TCPSocketImpl extends TCPSocket {
 				
 				String[] splited = sentence.split("\\s+");
 				int packet_seq_num = Integer.parseInt(splited[1]);
-            	splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
-            	int packet_ack_num = Integer.parseInt(splited[2].trim());
+				splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
+				int packet_ack_num = Integer.parseInt(splited[2].trim());
 				
 				//InetAddress IPAddress = receivePacket.getAddress();
 				port = receivePacket.getPort();
@@ -198,13 +198,16 @@ public class TCPSocketImpl extends TCPSocket {
 		byte[] sendData = new byte[1024];
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length);
 		//Timer timer = new Timer();
+		byte[] receiveData = new byte[1024];
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		
 		int dup_ack_packet_num = -1; 
+		int times_sent = 0;
 		int dup_ack_times = 0;
 		String seqNoString;
 		String sendDataString; 
 		while(next_seq_No< fileContent.size()){
-			if(next_seq_No-start_of_window <= cwnd){
+			if(next_seq_No-start_of_window <= cwnd && (next_seq_No!=start_of_window || times_sent==0)){
 				sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
 				sendData = sendDataString.getBytes();
 				System.out.println("File Part To Send: "+sendDataString);
@@ -223,9 +226,21 @@ public class TCPSocketImpl extends TCPSocket {
 				// 	// t.stop();
 				// }catch(InterruptedException ie){}
 				try{
-						socket.setSoTimeout(2000);
+					socket.setSoTimeout(2000);
+					System.out.println("Waiting for ACK");
+					socket.receive(receivePacket);
+					String sentence = new String(receivePacket.getData());
+					String message =sentence.split("\\s+")[0];
+					String ack_number =sentence.split("\\s+")[1];
+					String seq_number =sentence.split("\\s+")[2];
+					int packet_ack_num =Integer.parseInt(ack_number);
+					int packet_seq_num =Integer.parseInt(seq_number);
+					if(packet_ack_num-1==start_of_window){
+						throw new Exception("my.own.Exception");
+					}
 				}
 				catch(IOException e){
+					System.out.println("Timeout");
 					int index = start_of_window;
 					while(index<=next_seq_No){
 						sendDataString = Integer.toString(index) +" "+ fileContent.get(index);
@@ -233,6 +248,11 @@ public class TCPSocketImpl extends TCPSocket {
 						System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
 						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 					}
+				}
+				catch(Exception st){
+					start_of_window +=1;
+					times_sent = 0;
+					getWindowSize();
 				}
 			}
 			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
@@ -246,6 +266,12 @@ public class TCPSocketImpl extends TCPSocket {
 				ssthreshold = getSSThreshold();
 			}
 		}
+		sendDataString = Integer.toString(-100) +" "+ fileContent.get(-100);
+		sendData = sendDataString.getBytes();
+		System.out.println("File Part To Send: "+sendDataString);
+		sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+		socket.send(sendPacket);
+
 	}
 	@Override
 	public void receive(String pathToFile) throws Exception {
@@ -291,15 +317,18 @@ public class TCPSocketImpl extends TCPSocket {
 				this.socket.receive(receivePacket);
 
 				System.out.println("Got One byte of Data");
-			    sentence = new String(receivePacket.getData());
-			    System.out.println("Got message:" + sentence);
+				sentence = new String(receivePacket.getData());
+				System.out.println("Got message:" + sentence);
 
-			    splited = sentence.split("\\s+");
+				splited = sentence.split("\\s+");
 				packet_seq_num = Integer.parseInt(splited[0]);
-            	//splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
-            	//packet_ack_num = Integer.parseInt(splited[2].trim());
-            	System.out.println("packet_seq_num" + packet_seq_num);
+				//splited[2] = splited[2].replace("\n", "").replace("\r", "").replace(" ", "");
+				//packet_ack_num = Integer.parseInt(splited[2].trim());
+				System.out.println("packet_seq_num" + packet_seq_num);
 				//seqNoString = Integer.toString(packet_seq_num);
+				if(packet_seq_num==-100){
+					break;
+				}
 				if( packet_seq_num == this.excepted_seq_No)
 				{
 					
@@ -345,7 +374,6 @@ public class TCPSocketImpl extends TCPSocket {
 
 			// }
 
-			 break;
 			
 		   // System.out.println("RECEIVED: " + sentence);
 		   //InetAddress IPAddress = receivePacket.getAddress();
@@ -353,7 +381,7 @@ public class TCPSocketImpl extends TCPSocket {
 	
 		}
 		 for (int i=0;i < fileContent.size();i++){
-		 	writeToFile( pathToFile,fileContent.get(i));
+			writeToFile( pathToFile,fileContent.get(i));
 		// 	Data +=fileContent.get(i).getBytes();
 		 }
 		
@@ -404,6 +432,7 @@ public class TCPSocketImpl extends TCPSocket {
 			BufferedReader br = new BufferedReader(new FileReader(file));
 			String st; 
 			while ((st=br.readLine()) != null){
+				// System.out.println(st);
 				fileContent.add(st);
 			}
 			return fileContent;
@@ -415,16 +444,16 @@ public class TCPSocketImpl extends TCPSocket {
 		return fileContent;
 	}
 	public static void writeToFile(String filename, String str){
-        try{
-            BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
-            writer.append(str);
-            writer.close();
-        }
-        catch (Exception e){
-            System.out.println("An Error writing to file!\n");
-            System.out.println(e);
-        }
-    }
+		try{
+			BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true));
+			writer.append(str);
+			writer.close();
+		}
+		catch (Exception e){
+			System.out.println("An Error writing to file!\n");
+			System.out.println(e);
+		}
+	}
 		
 
 }
