@@ -209,6 +209,12 @@ public class TCPSocketImpl extends TCPSocket {
 		while(next_seq_No< fileContent.size()){
 			if(next_seq_No-start_of_window <= cwnd && (next_seq_No!=start_of_window || times_sent==0)){
 				sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
+				if(sendDataString.length()>1024){
+					String str = fileContent.get(next_seq_No);
+					fileContent.set(next_seq_No, str.substring(0, (int)str.length()/2));
+					fileContent.add(next_seq_No, str.substring((int)str.length()/2+ 1, str.length()));
+					sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
+				}
 				sendData = sendDataString.getBytes();
 				System.out.println("File Part To Send: "+sendDataString);
 				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
