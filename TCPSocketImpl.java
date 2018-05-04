@@ -235,7 +235,8 @@ public class TCPSocketImpl extends TCPSocket {
 					String seq_number =sentence.split("\\s+")[2];
 					int packet_ack_num =Integer.parseInt(ack_number);
 					int packet_seq_num =Integer.parseInt(seq_number);
-					if(packet_ack_num-1==start_of_window){
+					if(packet_ack_num-1>=start_of_window){
+						start_of_window = packet_ack_num;
 						throw new Exception("my.own.Exception");
 					}
 				}
@@ -250,7 +251,7 @@ public class TCPSocketImpl extends TCPSocket {
 					}
 				}
 				catch(Exception st){
-					start_of_window +=1;
+					
 					times_sent = 0;
 					getWindowSize();
 				}
