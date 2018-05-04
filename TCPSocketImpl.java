@@ -286,7 +286,7 @@ public class TCPSocketImpl extends TCPSocket {
 				fileContent.add(packet_seq_num-1, sentence);
 				if( packet_seq_num == this.excepted_seq_No)
 				{
-					this.excepted_seq_No += 1;
+					
 					packet_ack = this.excepted_seq_No;
 					ackNoString = Integer.toString(packet_ack);
 					String ack_message="ACK"+" "+ackNoString;
@@ -295,6 +295,7 @@ public class TCPSocketImpl extends TCPSocket {
 					this.socket.send(sendPacket);
 					System.out.println("Sent Ack");
 					fileContent.add(splited[1]);
+					this.excepted_seq_No += 1;
 
 				}
 				else
