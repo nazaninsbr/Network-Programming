@@ -21,6 +21,7 @@ public class TCPSocketImpl extends TCPSocket {
 	private int send_port;
 	private int next_seq_No;
 	private String ip;
+	private int start_of_window;
 	private int excepted_seq_No;
 	public TCPSocketImpl(String ip, int port) throws Exception {
 		super(ip, port);
@@ -30,7 +31,7 @@ public class TCPSocketImpl extends TCPSocket {
 		this.port=port;
 		this.ip=ip;
 		this.socket= new EnhancedDatagramSocket(this.port);
-
+		this.start_of_window = 0;
 		this.send_port = 12345;
 
 		
@@ -203,7 +204,7 @@ public class TCPSocketImpl extends TCPSocket {
 		String seqNoString;
 		String sendDataString; 
 		while(next_seq_No< fileContent.size()){
-			if(next_seq_No <= cwnd){
+			if(next_seq_No-start_of_window <= cwnd){
 				sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
 				sendData = sendDataString.getBytes();
 				System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
@@ -214,13 +215,25 @@ public class TCPSocketImpl extends TCPSocket {
 				System.out.println("Sent One byte of Data to port: "+3456);
 				next_seq_No +=1;
 				
-				Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket,3456);
-				t.start();
+				// Thread t = timeoutPacket(next_seq_No-1, ip, fileContent, 10, socket,3456);
+				// t.start();
+				// try{
+				// 	t.join();
+				// 	getWindowSize();
+				// 	// t.stop();
+				// }catch(InterruptedException ie){}
 				try{
-					t.join();
-					getWindowSize();
-					// t.stop();
-				}catch(InterruptedException ie){}
+						socket.setSoTimeout(2000);
+				}
+				catch(IOException e){
+					int index = start_of_window;
+					while(index<=next_seq_No){
+						sendDataString = Integer.toString(index) +" "+ fileContent.get(index);
+						sendData = sendDataString.getBytes();
+						System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
+						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+					}
+				}
 			}
 			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
 				sendDataString = Integer.toString(dup_ack_packet_num) +" "+ fileContent.get(next_seq_No);
