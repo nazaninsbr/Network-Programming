@@ -207,7 +207,7 @@ public class TCPSocketImpl extends TCPSocket {
 		String seqNoString;
 		String sendDataString; 
 		while(next_seq_No< fileContent.size()){
-			if(next_seq_No-start_of_window <= cwnd && (next_seq_No!=start_of_window || times_sent==0)){
+			if(next_seq_No-start_of_window <= cwnd){
 				sendDataString = Integer.toString(next_seq_No) +" "+ fileContent.get(next_seq_No);
 				if(sendDataString.length()>1024){
 					String str = fileContent.get(next_seq_No);
@@ -231,7 +231,18 @@ public class TCPSocketImpl extends TCPSocket {
 				// 	getWindowSize();
 				// 	// t.stop();
 				// }catch(InterruptedException ie){}
-				try{
+			}
+			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
+				sendDataString = Integer.toString(dup_ack_packet_num) +" "+ fileContent.get(next_seq_No);
+				sendData = sendDataString.getBytes();
+				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
+				socket.send(sendPacket);
+				dup_ack_packet_num = -1;
+				dup_ack_times = 0;
+				slowStart = 1;
+				ssthreshold = getSSThreshold();
+			}
+			try{
 					socket.setSoTimeout(2000);
 					System.out.println("Waiting for ACK");
 					socket.receive(receivePacket);
@@ -261,17 +272,6 @@ public class TCPSocketImpl extends TCPSocket {
 					times_sent = 0;
 					getWindowSize();
 				}
-			}
-			if(dup_ack_times == 3 && dup_ack_packet_num!=-1){
-				sendDataString = Integer.toString(dup_ack_packet_num) +" "+ fileContent.get(next_seq_No);
-				sendData = sendDataString.getBytes();
-				sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
-				socket.send(sendPacket);
-				dup_ack_packet_num = -1;
-				dup_ack_times = 0;
-				slowStart = 1;
-				ssthreshold = getSSThreshold();
-			}
 		}
 		sendDataString = Integer.toString(-100) +" "+ fileContent.get(-100);
 		sendData = sendDataString.getBytes();
