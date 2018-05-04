@@ -244,9 +244,9 @@ public class TCPSocketImpl extends TCPSocket {
 					System.out.println("Timeout");
 					int index = start_of_window;
 					while(index<=next_seq_No){
+						index +=1;
 						sendDataString = Integer.toString(index) +" "+ fileContent.get(index);
 						sendData = sendDataString.getBytes();
-						System.out.println("File Part To Send: "+fileContent.get(next_seq_No));
 						sendPacket = new DatagramPacket(sendData, sendData.length,ip_adress, 3456);
 					}
 				}
